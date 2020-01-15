@@ -1,0 +1,69 @@
+esphome:
+  name: esphome_garage_door
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: !secret wifi
+  password: !secret wifi_pw
+  fast_connect: on
+  manual_ip:
+    static_ip: !secret ip_s1
+    gateway: !secret ip_gateway
+    subnet: !secret ip_subnet
+
+web_server:
+  port: !secret web_port
+
+api:
+
+ota:
+
+logger:
+
+binary_sensor:
+- platform: gpio
+  pin:
+    number: GPIO13
+    mode: INPUT_PULLUP
+    inverted: False
+  name: "Garage Door Sensor"
+  device_class: garage_door
+  filters:
+    - delayed_on: 20ms
+ 
+sensor:
+- platform: dht
+  pin: GPIO4
+  temperature:
+    name: "Garage Temperature"
+    filters:
+    - lambda: return x * (9.0/5.0) + 32.0;
+    unit_of_measurement: "°F"
+  humidity:
+    name: "Garage Humidity"
+  update_interval: 60s
+  model: DHT22
+ 
+switch:
+- platform: gpio
+  id: relay
+  pin:
+    number: GPIO5
+    inverted: False
+  restore_mode: ALWAYS_OFF
+- platform: template
+  name: "Garage Door Switch"
+  icon: "mdi:garage"
+  turn_on_action:
+  - switch.turn_on: relay
+  - delay: 1s
+  - switch.turn_off: relay
+- platform: restart
+  name: 'Garage Door REBOOT'
+ 
+ 
+status_led:
+  id: status
+  pin:
+    number: GPIO4

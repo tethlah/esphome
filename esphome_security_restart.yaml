@@ -1,0 +1,111 @@
+esphome:
+  name: esphome_security_restart
+  platform: ESP8266
+  board: nodemcuv2
+
+wifi:
+  ssid: !secret wifi
+  password: !secret wifi_pw
+  fast_connect: false
+  manual_ip:
+    static_ip: !secret ip_s2
+    gateway: !secret ip_gateway
+    subnet: !secret ip_subnet
+
+web_server:
+  port: !secret web_port
+
+api:
+
+ota:
+
+logger:
+ 
+switch:
+### secsrv ###
+- platform: gpio
+  id: relay1
+  pin: 
+    number: 16
+    inverted: true
+  restore_mode: ALWAYS_OFF
+- platform: template
+  name: "Restart SecSrv"
+  icon: "mdi:restart"
+  turn_on_action:
+  - switch.turn_on: relay1
+  - delay: 1s
+  - switch.turn_off: relay1
+### camera1 ###
+- platform: gpio
+  id: relay2
+  pin: 
+    number: 5
+    inverted: true
+  restore_mode: ALWAYS_OFF
+- platform: template
+  name: "Restart Camera1"
+  icon: "mdi:restart"
+  turn_on_action:
+  - switch.turn_on: relay2
+  - delay: 1s
+  - switch.turn_off: relay2
+### camera2 ###
+- platform: gpio
+  id: relay3
+  pin: 
+    number: 4
+    inverted: true
+  restore_mode: ALWAYS_OFF
+- platform: template
+  name: "Restart Camera2"
+  icon: "mdi:restart"
+  turn_on_action:
+  - switch.turn_on: relay3
+  - delay: 1s
+  - switch.turn_off: relay3
+### camera3 ###
+- platform: gpio
+  id: relay4
+  pin: 
+    number: 14
+    inverted: true
+  restore_mode: ALWAYS_OFF
+- platform: template
+  name: "Restart Camera3"
+  icon: "mdi:restart"
+  turn_on_action:
+  - switch.turn_on: relay4
+  - delay: 1s
+  - switch.turn_off: relay4
+### camera4 ###
+- platform: gpio
+  id: relay5
+  pin: 
+    number: 12
+    inverted: true
+  restore_mode: ALWAYS_OFF
+- platform: template
+  name: "Restart Camera4"
+  icon: "mdi:restart"
+  turn_on_action:
+  - switch.turn_on: relay5
+  - delay: 1s
+  - switch.turn_off: relay5
+### camera5 ###
+- platform: gpio
+  id: relay6
+  pin: 
+    number: 13
+    inverted: true
+  restore_mode: ALWAYS_OFF
+- platform: template
+  name: "Restart Camera5"
+  icon: "mdi:restart"
+  turn_on_action:
+  - switch.turn_on: relay6
+  - delay: 1s
+  - switch.turn_off: relay6
+### Restart Node ###
+- platform: restart
+  name: 'Security REBOOT'
