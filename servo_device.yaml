@@ -1,19 +1,24 @@
-## ESPhome servo_device.yaml 
 esphome:
-  name: blinds
+  name: office_blinds
   platform: ESP8266
   board: d1_mini
 
 wifi:
   ssid: !secret wifi
   password: !secret wifi_pw
+  fast_connect: on
+  manual_ip:
+    static_ip: !secret ip_s3
+    gateway: !secret ip_gateway
+    subnet: !secret ip_subnet
 
-# Enable logging
+web_server:
+  port: !secret web_port
+
 debug: 
 logger:
   level: debug
 
-# Enable Home Assistant API
 api:
   services:
     - service: control_servo
@@ -27,10 +32,10 @@ ota:
 
 output:
   - platform: gpio
-    id: 'tilt_1'
+    id: 'obt_1'
     pin: D7
   - platform: gpio
-    id: 'tilt_2'
+    id: 'obt_2'
     pin: D8
   - platform: esp8266_pwm
     id: 'blinds_t'
@@ -39,22 +44,25 @@ output:
 
 switch:
   - platform: output
-    name: "tilt1"
-    output: 'tilt_1'
-    id: tilt1
+    output: 'obt_1'
+    id: obtilt1
   - platform: output
-    name: "tilt2"
-    output: 'tilt_2'
-    id: tilt2
+    output: 'obt_2'
+    id: obtilt2
 
 servo:
   - output: 'blinds_t'
     id: blinds_tilt
-    
+
+sensor:
+  - platform: template
+    name: "Office Blinds Position"
+    id: blinds_pos
+
 # binary_sensor:
 #   - platform: gpio
 #     pin: D3
-#     name: "blinds Button"
+#     name: "Office Blinds Button"
 #     filters:
 #       invert:
 #     on_multi_click:
@@ -62,7 +70,7 @@ servo:
 #         - ON for at most 0.5s
 #         - OFF for at most 0.5s
 #         - ON for at most 0.5s
-#         - OFF for at least 0.5s
+#         - OFF for at most 0.5s
 #       then:
 #         - lambda: |
 #             if (id(blinds_tilt_control).state == cover::COVER_OPEN) {
@@ -70,42 +78,45 @@ servo:
 #             } else {
 #               id(blinds_tilt_control).open();
 #             }
-  
+ 
 cover:
   - platform: template
-    name: "Blinds Tilt"
+    name: "Office Blinds Tilt"
     id: blinds_tilt_control
     optimistic: true
     open_action:
-      - switch.turn_off: tilt2
-      - switch.turn_on: tilt1
+      - switch.turn_off: obtilt2
+      - switch.turn_on: obtilt1
+      - delay: 500ms
+      - servo.write:
+          id: blinds_tilt
+          level: -2.0%
+      - sensor.template.publish:
+          id: blinds_pos
+          state: 50
+      - delay: 5s
+      - switch.turn_off: obtilt1
+    close_action:
+      - switch.turn_off: obtilt2
+      - switch.turn_on: obtilt1
       - delay: 500ms
       - servo.write:
           id: blinds_tilt
           level: -100.0%
+      - sensor.template.publish:
+          id: blinds_pos
+          state: 0
       - delay: 5s
-      - switch.turn_off: tilt1
-    close_action:
-      - switch.turn_off: tilt2
-      - switch.turn_on: tilt1
+      - switch.turn_off: obtilt1
+    stop_action:
+      - switch.turn_off: obtilt2
+      - switch.turn_on: obtilt1
       - delay: 500ms
       - servo.write:
           id: blinds_tilt
           level: 100.0%
+      - sensor.template.publish:
+          id: blinds_pos
+          state: 100
       - delay: 5s
-      - switch.turn_off: tilt1
-    stop_action:
-      - switch.turn_off: tilt1
-      - switch.turn_off: tilt2
-
-# sensor:
-#   - platform: adc
-#     pin: A0
-#     name: "Blinds Lumens"
-#     unit_of_measurement: lux
-#     update_interval: 5s
-#     filters:
-#     - multiply: 3.3
-    # filters:
-    #   - lambda: |-
-    #       return (x / 10000.0) * 2000000.0;
+      - switch.turn_off: obtilt1
